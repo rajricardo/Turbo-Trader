@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TWS Options Trading</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-header">
+        <div class="portfolio-info">
+            <div id="portfolioBalance" class="portfolio-balance">Balance: $--</div>
+            <div id="dailyPnL" class="daily-pnl">Daily P&L: $--</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="status-container">
+            <div id="statusMessage" class="status-message"></div>
+        </div>
+
+        <!-- Trading Section -->
+        <div id="tradingSection" class="trading-section">
+            <h3>Place Options Order</h3>
+            
+            <div class="form-row">
+                <label for="ticker">Symbol</label>
+                <select id="ticker" disabled>
+                    <option value="">Select Symbol</option>
+                    <option value="SPY">SPY</option>
+                    <option value="QQQ">QQQ</option>
+                    <option value="AAPL">AAPL</option>
+                    <option value="TSLA">TSLA</option>
+                    <option value="NVDA">NVDA</option>
+                    <option value="MSFT">MSFT</option>
+                    <option value="AMZN">AMZN</option>
+                    <option value="GOOGL">GOOGL</option>
+                    <option value="META">META</option>
+                    <option value="AMD">AMD</option>
+                    <option value="NFLX">NFLX</option>
+                    <option value="DIS">DIS</option>
+                    <option value="BABA">BABA</option>
+                    <option value="COIN">COIN</option>
+                    <option value="GME">GME</option>
+                    <option value="AMC">AMC</option>
+                </select>
+            </div>
+            
+            <div class="form-row">
+                <label for="quantity">Lot Size</label>
+                <select id="quantity" disabled>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+            
+            <div class="form-row">
+                <label for="expiry">Expiry Date</label>
+                <input type="date" id="expiry" disabled>
+            </div>
+
+            <div class="form-row">
+                <label for="strike">Strike Price</label>
+                <input type="number" id="strike" step="0.01" placeholder="e.g., 150.00" disabled>
+            </div>
+
+            <div class="form-row">
+                <label>Contract Type</label>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="optionType" value="C" checked disabled>
+                        <span>Call</span>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="optionType" value="P" disabled>
+                        <span>Put</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="button-row">
+                <button id="buyBtn" class="order-btn buy-btn" disabled>Buy Market Order</button>
+                <button id="closeAllBtn" class="order-btn close-all-btn" disabled>Close All Positions</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Dialog -->
+    <div id="confirmDialog" class="modal">
+        <div class="modal-content">
+            <h3>Confirm Order</h3>
+            <div id="confirmDetails" class="confirm-details"></div>
+            <div class="modal-buttons">
+                <button id="confirmBtn" class="confirm-btn">Confirm</button>
+                <button id="cancelBtn" class="cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="renderer.js"></script>
+</body>
+</html>

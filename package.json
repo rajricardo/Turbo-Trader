@@ -1,0 +1,24 @@
+{
+  "name": "tws-electron-app",
+  "version": "1.0.0",
+  "description": "Electron app for connecting to TWS Python API",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --enable-logging"
+  },
+  "keywords": [
+    "electron",
+    "TWS",
+    "Interactive Brokers",
+    "trading"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^27.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3"
+  }
+}

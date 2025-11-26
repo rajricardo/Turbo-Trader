@@ -1,0 +1,630 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    background-color: #1b202c;
+    color: #f8fafd;
+    padding: 0;
+    font-size: 11px;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* App Header */
+.app-header {
+    background: #0b0f13;
+    color: #f8fafd;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid #37c886;
+}
+
+.portfolio-info {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    align-items: center;
+}
+
+.portfolio-balance {
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(55, 200, 134, 0.15);
+    color: #f8fafd;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid rgba(55, 200, 134, 0.3);
+}
+
+.daily-pnl {
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(55, 200, 134, 0.15);
+    color: #f8fafd;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid rgba(55, 200, 134, 0.3);
+}
+
+.daily-pnl.positive {
+    background: rgba(106, 246, 153, 0.2);
+    color: #6af699;
+    border: 1px solid rgba(106, 246, 153, 0.4);
+}
+
+.daily-pnl.negative {
+    background: rgba(255, 69, 121, 0.2);
+    color: #ff4579;
+    border: 1px solid rgba(255, 69, 121, 0.4);
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 15px;
+}
+
+/* Connection Form */
+.connection-form {
+    background: #13161f;
+    border: 2px solid #37c886;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    margin-bottom: 20px;
+}
+
+.connection-form h3 {
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #f8fafd;
+}
+
+.form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+label {
+    flex: 0 0 90px;
+    font-size: 11px;
+    color: #bac7e4;
+    font-weight: 500;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid #3a4553;
+    border-radius: 4px;
+    font-size: 11px;
+    outline: none;
+    transition: all 0.2s;
+    font-family: inherit;
+    background-color: #1b202c;
+    color: #f8fafd;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+select:focus {
+    border-color: #37c886;
+    box-shadow: 0 0 0 2px rgba(55, 200, 134, 0.25);
+}
+
+input:disabled,
+select:disabled {
+    background-color: #0f1219;
+    color: #99a3b8;
+    border-color: #2a2f3a;
+    cursor: not-allowed;
+}
+
+.button-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.connect-btn {
+    padding: 6px 18px;
+    background-color: #37c886;
+    color: #0b0f13;
+    border: none;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.connect-btn:hover {
+    background-color: #2db96f;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(55, 200, 134, 0.3);
+}
+
+.connect-btn:active {
+    background-color: #28a85c;
+    transform: translateY(0);
+}
+
+.connect-btn:disabled {
+    background-color: #3a4553;
+    color: #99a3b8;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Status Messages */
+.status-container {
+    margin-top: 12px;
+    min-height: 40px;
+}
+
+.status-message {
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    line-height: 1.4;
+    display: none;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.status-message.show {
+    display: block;
+}
+
+.status-message.success {
+    background-color: rgba(106, 246, 153, 0.15);
+    color: #6af699;
+    border: 1px solid rgba(106, 246, 153, 0.3);
+}
+
+.status-message.error {
+    background-color: rgba(255, 69, 121, 0.15);
+    color: #ff4579;
+    border: 1px solid rgba(255, 69, 121, 0.3);
+}
+
+.status-message.connecting {
+    background-color: rgba(55, 200, 134, 0.15);
+    color: #37c886;
+    border: 1px solid rgba(55, 200, 134, 0.3);
+}
+
+/* Trading Section */
+.trading-section {
+    background: #13161f;
+    border: 2px solid #6af699;
+    border-radius: 6px;
+    padding: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    margin-bottom: 15px;
+}
+
+.trading-section h3 {
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #f8fafd;
+}
+
+.order-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.buy-btn {
+    background-color: #6af699;
+    color: #0b0f13;
+}
+
+.buy-btn:hover:not(:disabled) {
+    background-color: #5ee085;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(106, 246, 153, 0.3);
+}
+
+.sell-btn {
+    background-color: #ff4579;
+    color: #f8fafd;
+}
+
+.sell-btn:hover:not(:disabled) {
+    background-color: #e83a68;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(255, 69, 121, 0.3);
+}
+
+.order-btn:disabled {
+    background-color: #3a4553;
+    color: #99a3b8;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Positions Section */
+.positions-section {
+    background: #13161f;
+    border: 2px solid #37c886;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.section-header h3 {
+    font-size: 13px;
+    color: #f8fafd;
+    margin: 0;
+}
+
+.refresh-btn {
+    padding: 5px 12px;
+    background-color: #37c886;
+    color: #0b0f13;
+    border: none;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+    background-color: #2db96f;
+    box-shadow: 0 2px 6px rgba(55, 200, 134, 0.3);
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+}
+
+thead {
+    background-color: #0b0f13;
+}
+
+th {
+    padding: 8px 6px;
+    text-align: left;
+    font-weight: 600;
+    color: #37c886;
+    border-bottom: 2px solid #3a4553;
+}
+
+td {
+    padding: 8px 6px;
+    border-bottom: 1px solid #3a4553;
+    color: #bac7e4;
+}
+
+tbody tr:hover {
+    background-color: rgba(55, 200, 134, 0.05);
+}
+
+.close-position-btn {
+    padding: 3px 10px;
+    background-color: #ff4579;
+    color: #f8fafd;
+    border: none;
+    border-radius: 3px;
+    font-size: 9px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.close-position-btn:hover {
+    background-color: #e83a68;
+    box-shadow: 0 2px 6px rgba(255, 69, 121, 0.3);
+}
+
+.positive {
+    color: #6af699;
+    font-weight: 600;
+}
+
+.negative {
+    color: #ff4579;
+    font-weight: 600;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Loading Spinner */
+.spinner {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border: 2px solid rgba(55, 200, 134, 0.3);
+    border-radius: 50%;
+    border-top-color: #37c886;
+    animation: spin 0.8s linear infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Radio Button Styles */
+.radio-group {
+    display: flex;
+    gap: 15px;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: #bac7e4;
+    font-size: 11px;
+    transition: color 0.2s;
+}
+
+.radio-label:hover {
+    color: #f8fafd;
+}
+
+.radio-label input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #37c886;
+    border-radius: 50%;
+    outline: none;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.radio-label input[type="radio"]:checked {
+    background-color: #37c886;
+    box-shadow: 0 0 0 2px #13161f inset;
+}
+
+.radio-label input[type="radio"]:hover {
+    border-color: #6af699;
+}
+
+.radio-label input[type="radio"]:disabled {
+    border-color: #99a3b8;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Close All Button */
+.close-all-btn {
+    background: linear-gradient(135deg, #ff4579 0%, #e83a68 100%);
+    color: #f8fafd;
+    border: none;
+    padding: 8px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(255, 69, 121, 0.3);
+}
+
+.close-all-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #e83a68 0%, #d4315a 100%);
+    box-shadow: 0 4px 12px rgba(255, 69, 121, 0.4);
+    transform: translateY(-2px);
+}
+
+.close-all-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.close-all-btn:disabled {
+    background: #99a3b8;
+    cursor: not-allowed;
+    opacity: 0.5;
+    box-shadow: none;
+}
+
+/* Modal Dialog Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(11, 15, 19, 0.85);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.modal-content {
+    background-color: #13161f;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    border: 2px solid #37c886;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-content h3 {
+    color: #37c886;
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    font-weight: 600;
+    border-bottom: 2px solid #37c886;
+    padding-bottom: 10px;
+}
+
+.confirm-details {
+    color: #bac7e4;
+    font-size: 11px;
+    line-height: 1.5;
+    margin-bottom: 18px;
+}
+
+.confirm-details p {
+    margin: 6px 0;
+}
+
+.confirm-details strong {
+    color: #f8fafd;
+    font-weight: 600;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.confirm-btn {
+    background: linear-gradient(135deg, #37c886 0%, #2da768 100%);
+    color: #0b0f13;
+    border: none;
+    padding: 8px 20px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(55, 200, 134, 0.3);
+}
+
+.confirm-btn:hover {
+    background: linear-gradient(135deg, #6af699 0%, #37c886 100%);
+    box-shadow: 0 4px 12px rgba(55, 200, 134, 0.4);
+    transform: translateY(-2px);
+}
+
+.confirm-btn:active {
+    transform: translateY(0);
+}
+
+.cancel-btn {
+    background: #99a3b8;
+    color: #0b0f13;
+    border: none;
+    padding: 8px 20px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.cancel-btn:hover {
+    background: #bac7e4;
+    transform: translateY(-2px);
+}
+
+.cancel-btn:active {
+    transform: translateY(0);
+}
+
+/* Adjust trading section to be more compact */
+.trading-section {
+    background: #13161f;
+    border: 2px solid #37c886;
+    border-radius: 6px;
+    padding: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Dropdown styles for select elements */
+select {
+    background-color: #1b202c;
+    color: #f8fafd;
+    border: 1px solid #37c886;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+}
+
+select:hover:not(:disabled) {
+    border-color: #6af699;
+    background-color: #242a38;
+}
+
+select:focus {
+    border-color: #6af699;
+    box-shadow: 0 0 0 3px rgba(55, 200, 134, 0.1);
+}
+
+select:disabled {
+    background-color: #13161f;
+    color: #99a3b8;
+    border-color: #99a3b8;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+select option {
+    background-color: #1b202c;
+    color: #f8fafd;
+    padding: 10px;
+}
