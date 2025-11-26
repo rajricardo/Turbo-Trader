@@ -1,4 +1,7 @@
 node_modules/
+Changes/
+include/
+lib/
 *.log
 *.pyc
 __pycache__/
