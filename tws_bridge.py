@@ -372,7 +372,7 @@ def get_balance_ib_insync():
         
         for item in account_values:
             log(f"Account value: tag={item.tag}, value={item.value}, currency={item.currency}")
-            if item.tag == 'NetLiquidation' and item.currency == 'USD':
+            if item.tag == 'LookAheadAvailableFunds' and item.currency == 'USD':
                 net_liquidation = float(item.value)
                 log(f"Found NetLiquidation: {net_liquidation}")
                 break
