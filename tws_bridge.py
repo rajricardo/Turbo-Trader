@@ -73,20 +73,22 @@ def init_ibapi(host, port, client_id):
                 self.realized_pnl = 0.0
                 self.unrealized_pnl = 0.0
                 self.request_complete = False
-                
+                self.price = 0.0
+                self.price_received = False
+
             def error(self, reqId, errorCode, errorString, advancedOrderRejectJson=""):
                 log(f"Error {errorCode}: {errorString}")
-                    
+
             def connectAck(self):
                 log("Connection acknowledged")
                 self.connected = True
-                
+
             def nextValidId(self, orderId):
                 self.next_order_id = orderId
                 if not self.connected:
                     self.connected = True
                     log(f"Successfully connected using ibapi (Next order ID: {orderId})")
-                    
+
             def position(self, account, contract, position, avgCost):
                 self.positions.append({
                     'account': account,
@@ -94,10 +96,10 @@ def init_ibapi(host, port, client_id):
                     'position': position,
                     'avgCost': avgCost
                 })
-                
+
             def positionEnd(self):
                 self.request_complete = True
-                
+
             def accountSummary(self, reqId, account, tag, value, currency):
                 if tag == 'NetLiquidation':
                     self.account_value = float(value)
@@ -107,9 +109,15 @@ def init_ibapi(host, port, client_id):
                     self.realized_pnl = float(value)
                 elif tag == 'UnrealizedPnL':
                     self.unrealized_pnl = float(value)
-                    
+
             def accountSummaryEnd(self, reqId):
                 self.request_complete = True
+
+            def tickPrice(self, reqId, tickType, price, attrib):
+                if tickType == 4 and price > 0:
+                    self.price = price
+                    self.price_received = True
+                    log(f"Received price for reqId {reqId}: {price}")
         
         ib = IBApp()
         log(f"Attempting to connect to {host}:{port} with client ID {client_id}...")
@@ -385,7 +393,7 @@ def get_balance_ibapi():
         ib.account_value = 0.0
         ib.request_complete = False
         ib.reqAccountSummary(1, 'All', 'NetLiquidation')
-        
+
         # Wait for response
         timeout = 5
         start_time = time.time()
@@ -394,18 +402,90 @@ def get_balance_ibapi():
                 log("Timeout waiting for account summary")
                 break
             time.sleep(0.1)
-        
+
         ib.cancelAccountSummary(1)
-        
+
         log(f"Account value: {ib.account_value}")
         if ib.account_value == 0:
             log("Warning: Account value is 0")
-        
+
         return {"success": True, "balance": ib.account_value}
-        
+
     except Exception as e:
         log(f"Error getting balance: {str(e)}\n{traceback.format_exc()}")
         return {"success": False, "message": f"Failed to get balance: {str(e)}", "balance": 0}
+
+def get_ticker_price_ib_insync(ticker):
+    """Get ticker price using ib_insync"""
+    try:
+        from ib_insync import Stock
+
+        log(f"Requesting ticker price for {ticker} from ib_insync...")
+        contract = Stock(ticker, 'SMART', 'USD')
+        ib.qualifyContracts(contract)
+
+        ticker_data = ib.reqMktData(contract, '', False, False)
+        ib.sleep(2)
+
+        price = ticker_data.marketPrice()
+        if price and price > 0:
+            log(f"Got price for {ticker}: {price}")
+            return {"success": True, "price": float(price)}
+
+        if ticker_data.last and ticker_data.last > 0:
+            log(f"Got last price for {ticker}: {ticker_data.last}")
+            return {"success": True, "price": float(ticker_data.last)}
+
+        if ticker_data.close and ticker_data.close > 0:
+            log(f"Got close price for {ticker}: {ticker_data.close}")
+            return {"success": True, "price": float(ticker_data.close)}
+
+        log(f"No valid price found for {ticker}")
+        return {"success": False, "message": f"No price data available for {ticker}", "price": 0}
+
+    except Exception as e:
+        log(f"Error getting ticker price: {str(e)}\n{traceback.format_exc()}")
+        return {"success": False, "message": f"Failed to get ticker price: {str(e)}", "price": 0}
+
+def get_ticker_price_ibapi(ticker):
+    """Get ticker price using ibapi"""
+    try:
+        from ibapi.contract import Contract
+
+        log(f"Requesting ticker price for {ticker} from ibapi...")
+
+        contract = Contract()
+        contract.symbol = ticker
+        contract.secType = 'STK'
+        contract.exchange = 'SMART'
+        contract.currency = 'USD'
+
+        req_id = 9001
+        ib.price = 0.0
+        ib.price_received = False
+
+        ib.reqMktData(req_id, contract, '', False, False, [])
+
+        timeout = 5
+        start_time = time.time()
+        while not ib.price_received:
+            if time.time() - start_time > timeout:
+                log("Timeout waiting for price")
+                break
+            time.sleep(0.1)
+
+        ib.cancelMktData(req_id)
+
+        if ib.price > 0:
+            log(f"Got price for {ticker}: {ib.price}")
+            return {"success": True, "price": float(ib.price)}
+        else:
+            log(f"No valid price found for {ticker}")
+            return {"success": False, "message": f"No price data available for {ticker}", "price": 0}
+
+    except Exception as e:
+        log(f"Error getting ticker price: {str(e)}\n{traceback.format_exc()}")
+        return {"success": False, "message": f"Failed to get ticker price: {str(e)}", "price": 0}
 
 def get_daily_pnl_ib_insync():
     """Get account daily P&L using ib_insync"""
@@ -668,7 +748,18 @@ def handle_command(command):
                 result = close_all_positions_ibapi()
             log(f"Close all positions result: {result}")
             send_response(result, request_id)
-            
+
+        elif cmd_type == 'get_ticker_price':
+            data = command.get('data', {})
+            ticker = data.get('ticker', '')
+            log(f"Getting ticker price for {ticker}...")
+            if using_ib_insync:
+                result = get_ticker_price_ib_insync(ticker)
+            else:
+                result = get_ticker_price_ibapi(ticker)
+            log(f"Ticker price result: {result}")
+            send_response(result, request_id)
+
         else:
             log(f"Unknown command: {cmd_type}")
             send_response({"success": False, "message": f"Unknown command: {cmd_type}"}, request_id)

@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
+const fs = require('fs');
 require('dotenv').config();
 
 let mainWindow;
@@ -9,9 +10,26 @@ let responseHandlers = new Map();
 let outputBuffer = '';
 
 // Read connection settings from .env
-const TWS_HOST = process.env.TWS_HOST || '127.0.0.1';
-const TWS_PORT = process.env.TWS_PORT || '4002';
-const TWS_CLIENT_ID = process.env.TWS_CLIENT_ID || '1';
+let TWS_HOST = process.env.TWS_HOST || '127.0.0.1';
+let TWS_PORT = process.env.TWS_PORT || '4002';
+let TWS_CLIENT_ID = process.env.TWS_CLIENT_ID || '1';
+
+function updateEnvFile(host, port, clientId) {
+  const envPath = path.join(__dirname, '.env');
+  const envContent = `# TWS Connection Settings
+TWS_HOST=${host}
+TWS_PORT=${port}
+TWS_CLIENT_ID=${clientId}
+`;
+
+  try {
+    fs.writeFileSync(envPath, envContent, 'utf8');
+    return true;
+  } catch (error) {
+    console.error('Error updating .env file:', error);
+    return false;
+  }
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -87,17 +105,14 @@ function sendCommandToBridge(command) {
 // Handle connection request from renderer
 ipcMain.handle('connect-tws', async (event) => {
   return new Promise((resolve, reject) => {
-    // Kill existing Python process if any
     if (pythonProcess) {
       pythonProcess.kill();
       pythonProcess = null;
     }
 
-    // Reset response handlers
     responseHandlers.clear();
     outputBuffer = '';
 
-    // Spawn Python process with .env settings
     const pythonScript = path.join(__dirname, 'tws_bridge.py');
     pythonProcess = spawn('python3', [pythonScript, TWS_HOST, TWS_PORT, TWS_CLIENT_ID]);
 
@@ -267,4 +282,37 @@ ipcMain.handle('close-all-positions', async () => {
   } catch (error) {
     return { success: false, message: error.message };
   }
+});
+
+// Handle get ticker price request
+ipcMain.handle('get-ticker-price', async (event, ticker) => {
+  try {
+    const response = await sendCommandToBridge({
+      type: 'get_ticker_price',
+      data: { ticker }
+    });
+    return response;
+  } catch (error) {
+    return { success: false, message: error.message, price: 0 };
+  }
+});
+
+// Handle update connection settings request
+ipcMain.handle('update-connection-settings', async (event, settings) => {
+  TWS_HOST = settings.host || '127.0.0.1';
+  TWS_PORT = settings.port || '4002';
+  TWS_CLIENT_ID = settings.clientId || '1';
+
+  const updated = updateEnvFile(TWS_HOST, TWS_PORT, TWS_CLIENT_ID);
+
+  return { success: updated };
+});
+
+// Handle get connection settings request
+ipcMain.handle('get-connection-settings', async () => {
+  return {
+    host: TWS_HOST,
+    port: TWS_PORT,
+    clientId: TWS_CLIENT_ID
+  };
 });

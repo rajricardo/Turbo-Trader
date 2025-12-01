@@ -13,6 +13,12 @@
             <div id="portfolioBalance" class="portfolio-balance">Balance: $--</div>
             <div id="dailyPnL" class="daily-pnl">Daily P&L: $--</div>
         </div>
+        <button id="settingsBtn" class="settings-btn" title="Settings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+        </button>
     </div>
 
     <div class="container">
@@ -67,7 +73,14 @@
 
             <div class="form-row">
                 <label for="strike">Strike Price</label>
-                <input type="number" id="strike" step="0.01" placeholder="e.g., 150.00" disabled>
+                <div class="input-with-button">
+                    <input type="number" id="strike" step="0.01" placeholder="e.g., 150.00" disabled>
+                    <button id="refreshPriceBtn" class="refresh-btn" disabled title="Refresh current price">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <div class="form-row">
@@ -102,7 +115,66 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Settings Dialog -->
+    <div id="settingsDialog" class="modal">
+        <div class="modal-content settings-modal">
+            <h3>Settings</h3>
+
+            <div class="settings-section">
+                <h4>TWS Connection</h4>
+                <div class="settings-row">
+                    <label for="settingsHost">Host:</label>
+                    <input type="text" id="settingsHost" placeholder="127.0.0.1">
+                </div>
+                <div class="settings-row">
+                    <label for="settingsPort">Port:</label>
+                    <input type="text" id="settingsPort" placeholder="4002">
+                </div>
+                <div class="settings-row">
+                    <label for="settingsClientId">Client ID:</label>
+                    <input type="text" id="settingsClientId" placeholder="1">
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h4>Appearance</h4>
+                <div class="settings-row">
+                    <label>Theme:</label>
+                    <div class="theme-selector">
+                        <button class="theme-btn" data-theme="dark">Dark</button>
+                        <button class="theme-btn" data-theme="light">Light</button>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <label>Font Size:</label>
+                    <div class="font-size-selector">
+                        <button class="font-btn" data-size="small">Small</button>
+                        <button class="font-btn" data-size="medium">Medium</button>
+                        <button class="font-btn" data-size="large">Large</button>
+                    </div>
+                </div>
+            </div>
+
+            <button id="closeSettingsBtn" class="close-settings-btn">Close</button>
+        </div>
+    </div>
+
+    <!-- Reconnect Confirmation Dialog -->
+    <div id="reconnectDialog" class="modal">
+        <div class="modal-content">
+            <h3>Restart Required</h3>
+            <div class="confirm-details">
+                <p>Connection settings have been changed.</p>
+                <p>Would you like to restart the application to apply the new settings?</p>
+            </div>
+            <div class="modal-buttons">
+                <button id="reconnectConfirmBtn" class="confirm-btn">Restart Now</button>
+                <button id="reconnectCancelBtn" class="cancel-btn">Later</button>
+            </div>
+        </div>
+    </div>
+
     <script src="renderer.js"></script>
 </body>
 </html>

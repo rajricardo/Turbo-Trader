@@ -11,6 +11,14 @@ A cross-platform Electron-based application for connecting to Interactive Broker
 - 🐍 Python bridge for TWS API integration
 - ✨ Clean and intuitive user interface
 - ⚡ Real-time connection status feedback
+- ⚙️ **Settings panel** with gear icon for easy configuration
+- 🎨 **Dark/Light theme support** - Switch between themes instantly
+- 🔤 **Adjustable font sizes** - Small, Medium, and Large options
+- 💾 **Persistent connection settings** - Settings saved in `.env` file
+- 💰 **Auto-populate Strike Price** - Automatically fetches current ticker price
+- 🔄 **Refresh button** - Manually update strike price with latest market data
+- 📊 Real-time portfolio balance and daily P&L tracking
+- 📈 Options trading interface with Buy and Close All functionality
 
 ## Prerequisites
 
@@ -67,10 +75,16 @@ npm start
 
 ### 2. Configure Connection Settings
 
-The application opens with default values:
+The application automatically connects on startup using settings from the `.env` file:
 - **Host:** `127.0.0.1` (localhost)
-- **Port:** `7496` (TWS paper trading default)
+- **Port:** `4002` (IB Gateway Live Trading default)
 - **Client ID:** `1`
+
+**To change settings:**
+1. Click the **gear icon** (⚙️) in the top-right corner
+2. Update Host, Port, or Client ID as needed
+3. Changes are automatically saved to `.env` file
+4. Click **Reconnect** when prompted to apply changes
 
 **Common Ports:**
 - `7496` - TWS Paper Trading
@@ -78,9 +92,27 @@ The application opens with default values:
 - `4001` - IB Gateway Paper Trading
 - `4002` - IB Gateway Live Trading
 
-### 3. Connect
+### 3. Customize Appearance
 
-Click the **Connect** button. If successful, the button changes to **Disconnect**.
+In the Settings panel, you can:
+- **Theme:** Switch between Dark and Light modes
+- **Font Size:** Choose Small, Medium, or Large text
+
+### 4. Trading Features
+
+**Auto-populate Strike Price:**
+- Select a ticker symbol
+- The app automatically fetches and populates the current market price
+- Click the refresh button (🔄) to update the price manually
+
+**Place Orders:**
+- Enter ticker, quantity, expiry date, and strike price
+- Select Call or Put option type
+- Click Buy to place the order
+
+**Monitor Portfolio:**
+- View real-time balance and daily P&L in the header
+- Track your positions and performance
 
 ## Troubleshooting
 
