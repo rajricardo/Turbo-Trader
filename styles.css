@@ -470,7 +470,9 @@ tbody tr:hover {
 /* Radio Button Styles */
 .radio-group {
     display: flex;
+    align-items: center;
     gap: 15px;
+    flex: 1;
 }
 
 .radio-label {

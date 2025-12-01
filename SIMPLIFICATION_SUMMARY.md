@@ -24,10 +24,11 @@
 ### 5. **Strike Price**
 - ✅ Kept as text field (no changes needed)
 
-### 6. **Contract Type Radio Buttons**
+### 6. **Direction Radio Buttons**
 - ✅ Converted dropdown to horizontal radio buttons for Call/Put
 - ✅ Added custom styling to match Electron Vue theme
 - ✅ Default selection: Call
+- ✅ Properly aligned with form labels
 
 ### 7. **Positions Table Removed**
 - ✅ Completely removed positions table and related UI elements
