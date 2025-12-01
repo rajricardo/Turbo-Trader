@@ -1014,6 +1014,11 @@ body.light-theme select:focus {
     box-shadow: 0 0 0 2px rgba(55, 200, 134, 0.25);
 }
 
+body.light-theme select:hover:not(:disabled) {
+    border-color: #37c886;
+    background-color: #ffffff;
+}
+
 body.light-theme input:disabled,
 body.light-theme select:disabled {
     background-color: #e2e8f0;
