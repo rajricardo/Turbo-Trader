@@ -30,9 +30,16 @@ A lightning-fast, cross-platform Electron-based application for connecting to In
 
 ### 2. Python 3
 - **Version:** Python 3.7 or higher
-- **Download:** https://www.python.org/downloads/
 
-### 3. Interactive Brokers TWS or IB Gateway
+### 3. TWS Python API Library
+
+Install either `ib_insync` (recommended) or `ibapi`:
+
+```bash
+pip3 install ib_insync
+```
+
+### 4. Interactive Brokers TWS or IB Gateway
 - **Download TWS:** https://www.interactivebrokers.com/en/trading/tws.php
 - **Download IB Gateway:** https://www.interactivebrokers.com/en/trading/ibgateway-latest.php
 
@@ -50,18 +57,10 @@ A lightning-fast, cross-platform Electron-based application for connecting to In
    ```bash
    cd turbo-trader
    ```
-3. **Set up Python virtual environment:**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
-4. Install Node.js dependencies:
+3. Install dependencies:
    ```bash
    npm install
    ```
-
-**Note:** The application uses a Python virtual environment (`venv/`) to isolate dependencies. Make sure to activate it before running any Python scripts manually.
 
 ## Running the Application
 
