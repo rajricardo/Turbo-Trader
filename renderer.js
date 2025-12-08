@@ -34,6 +34,10 @@ const newTickerInput = document.getElementById('newTicker');
 const addTickerBtn = document.getElementById('addTickerBtn');
 const tickerList = document.getElementById('tickerList');
 
+// Risk Management DOM elements
+const stopLossInput = document.getElementById('stopLoss');
+const takeProfitInput = document.getElementById('takeProfit');
+
 // Reconnect dialog
 const reconnectDialog = document.getElementById('reconnectDialog');
 const reconnectConfirmBtn = document.getElementById('reconnectConfirmBtn');
@@ -61,7 +65,9 @@ async function loadSettings() {
         clientId: envSettings.clientId,
         theme: 'dark',
         fontSize: 'medium',
-        watchlist: ['SPY', 'QQQ', 'AAPL', 'TSLA', 'NVDA', 'MSFT']
+        watchlist: ['SPY', 'QQQ', 'AAPL', 'TSLA', 'NVDA', 'MSFT'],
+        stopLoss: '--',
+        takeProfit: '--'
     };
 }
 
@@ -202,6 +208,8 @@ settingsBtn.addEventListener('click', async () => {
     settingsHost.value = currentSettings.host;
     settingsPort.value = currentSettings.port;
     settingsClientId.value = currentSettings.clientId;
+    stopLossInput.value = currentSettings.stopLoss || '--';
+    takeProfitInput.value = currentSettings.takeProfit || '--';
 
     document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.theme === currentSettings.theme);
@@ -293,6 +301,20 @@ newTickerInput.addEventListener('keypress', (e) => {
     }
 });
 
+stopLossInput.addEventListener('change', async () => {
+    const currentSettings = await loadSettings();
+    const value = stopLossInput.value.trim();
+    currentSettings.stopLoss = value === '' ? '--' : value;
+    saveSettings(currentSettings);
+});
+
+takeProfitInput.addEventListener('change', async () => {
+    const currentSettings = await loadSettings();
+    const value = takeProfitInput.value.trim();
+    currentSettings.takeProfit = value === '' ? '--' : value;
+    saveSettings(currentSettings);
+});
+
 reconnectConfirmBtn.addEventListener('click', async () => {
     reconnectDialog.style.display = 'none';
     location.reload();
@@ -374,7 +396,7 @@ confirmDialog.addEventListener('click', (e) => {
     }
 });
 
-function showOrderConfirmation(action) {
+async function showOrderConfirmation(action) {
     const ticker = tickerInput.value.trim().toUpperCase();
     const quantity = parseInt(quantityInput.value);
     const expiry = expiryInput.value;
@@ -402,8 +424,13 @@ function showOrderConfirmation(action) {
         return;
     }
 
+    // Get current settings for SL/TP
+    const currentSettings = await loadSettings();
+    const stopLoss = currentSettings.stopLoss || '--';
+    const takeProfit = currentSettings.takeProfit || '--';
+
     const optionTypeName = optionType === 'C' ? 'Call' : 'Put';
-    const details = `
+    let details = `
         <p><strong>Action:</strong> ${action}</p>
         <p><strong>Symbol:</strong> ${ticker}</p>
         <p><strong>Quantity:</strong> ${quantity} contracts</p>
@@ -411,6 +438,17 @@ function showOrderConfirmation(action) {
         <p><strong>Strike:</strong> $${strike.toFixed(2)}</p>
         <p><strong>Type:</strong> ${optionTypeName}</p>
     `;
+
+    // Add SL/TP info if set
+    if (stopLoss !== '--' || takeProfit !== '--') {
+        details += '<p style="margin-top: 10px; font-weight: bold; color: #4a9eff;">Risk Management:</p>';
+        if (stopLoss !== '--') {
+            details += `<p><strong>Stop Loss:</strong> ${stopLoss}%</p>`;
+        }
+        if (takeProfit !== '--') {
+            details += `<p><strong>Take Profit:</strong> ${takeProfit}%</p>`;
+        }
+    }
 
     confirmDetails.innerHTML = details;
     confirmDialog.style.display = 'flex';
@@ -423,7 +461,9 @@ function showOrderConfirmation(action) {
             quantity: quantity,
             expiry: expiry.replace(/-/g, ''),
             strike: strike,
-            optionType: optionType
+            optionType: optionType,
+            stopLoss: stopLoss,
+            takeProfit: takeProfit
         }
     };
 }

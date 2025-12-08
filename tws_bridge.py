@@ -158,10 +158,13 @@ def connect(host, port, client_id):
             return False
     return True
 
-def place_order_ib_insync(action, ticker, quantity, expiry, strike, option_type):
-    """Place order using ib_insync"""
+def place_order_ib_insync(action, ticker, quantity, expiry, strike, option_type, stop_loss_pct='--', take_profit_pct='--'):
+    """Place order using ib_insync with optional bracket orders for SL/TP"""
     try:
-        from ib_insync import Contract, Order
+        from ib_insync import Contract, Order, Trade
+        
+        log(f"=== Starting order placement ===")
+        log(f"SL/TP received: stop_loss_pct={stop_loss_pct}, take_profit_pct={take_profit_pct}")
         
         # Create option contract
         contract = Contract()
@@ -176,28 +179,172 @@ def place_order_ib_insync(action, ticker, quantity, expiry, strike, option_type)
         
         # Qualify the contract
         ib.qualifyContracts(contract)
+        log(f"Contract qualified: {contract}")
         
         # Create market order
         order = Order()
         order.action = action
         order.orderType = 'MKT'
         order.totalQuantity = quantity
+        order.tif = 'DAY'  # Explicitly set Time in Force to prevent preset conflicts
         
-        # Place the order
+        # Place the parent order
         trade = ib.placeOrder(contract, order)
-        ib.sleep(1)  # Wait for order to be submitted
+        log(f"Parent order placed: {trade}")
+        
+        # Wait for the order to fill
+        timeout = 30  # 30 seconds timeout
+        start_time = time.time()
+        while not trade.isDone():
+            ib.sleep(0.5)
+            if time.time() - start_time > timeout:
+                log("Timeout waiting for order to fill")
+                return {
+                    "success": False,
+                    "message": "Order placement timeout - check TWS for order status"
+                }
+        
+        # Check if order was filled
+        if trade.orderStatus.status != 'Filled':
+            log(f"Order not filled. Status: {trade.orderStatus.status}")
+            return {
+                "success": False,
+                "message": f"Order not filled. Status: {trade.orderStatus.status}"
+            }
+        
+        # Get the fill price - try multiple methods
+        fill_price = None
+        log(f"Trade status: {trade.orderStatus}")
+        log(f"Trade fills: {trade.fills}")
+        
+        # Method 1: Check fills list
+        if trade.fills and len(trade.fills) > 0:
+            # Calculate average fill price from fills
+            total_quantity = 0
+            total_value = 0
+            for fill in trade.fills:
+                fill_qty = fill.execution.shares
+                fill_px = fill.execution.price
+                total_quantity += fill_qty
+                total_value += fill_qty * fill_px
+                log(f"Fill: {fill_qty} @ ${fill_px}")
+            
+            if total_quantity > 0:
+                fill_price = total_value / total_quantity
+                log(f"Calculated fill price from fills: ${fill_price:.2f}")
+        
+        # Method 2: Use avgFillPrice from order status
+        if fill_price is None or fill_price == 0:
+            fill_price = trade.orderStatus.avgFillPrice
+            log(f"Using avgFillPrice from orderStatus: ${fill_price}")
+        
+        # Validate fill price
+        if fill_price is None or fill_price <= 0:
+            log(f"ERROR: Invalid fill price: {fill_price}")
+            return {
+                "success": False,
+                "message": f"Could not determine fill price. Order may have filled at ${fill_price}"
+            }
+        
+        log(f"Final fill price: ${fill_price:.2f}")
+        
+        # Helper function to round price to valid tick size (0.05 for options under $3, 0.10 for $3+)
+        def round_to_tick(price):
+            if price < 3:
+                tick_size = 0.05
+            else:
+                tick_size = 0.10
+            return round(price / tick_size) * tick_size
+        
+        # Check if we need to place bracket orders
+        has_stop_loss = stop_loss_pct != '--' and stop_loss_pct != '' and stop_loss_pct is not None
+        has_take_profit = take_profit_pct != '--' and take_profit_pct != '' and take_profit_pct is not None
+        
+        log(f"Bracket order check: has_stop_loss={has_stop_loss}, has_take_profit={has_take_profit}")
+        
+        bracket_messages = []
+        
+        if has_stop_loss or has_take_profit:
+            log(f"Placing bracket orders - SL: {stop_loss_pct}, TP: {take_profit_pct}")
+            
+            # Calculate stop loss price (percentage below fill price)
+            if has_stop_loss:
+                try:
+                    sl_pct = float(stop_loss_pct)
+                    stop_price_raw = fill_price * (1 - sl_pct / 100)
+                    stop_price = round_to_tick(stop_price_raw)
+                    log(f"Stop Loss calculation: {sl_pct}% of ${fill_price:.2f} = ${stop_price_raw:.3f} -> rounded to ${stop_price:.2f}")
+                    
+                    # Create stop loss order
+                    sl_order = Order()
+                    sl_order.action = 'SELL' if action == 'BUY' else 'BUY'  # Opposite of parent
+                    sl_order.orderType = 'STP'
+                    sl_order.totalQuantity = quantity
+                    sl_order.auxPrice = stop_price  # Stop trigger price
+                    sl_order.transmit = True  # Important: transmit the order
+                    sl_order.outsideRth = True  # Allow outside regular hours
+                    
+                    log(f"Submitting stop loss order: action={sl_order.action}, type={sl_order.orderType}, qty={sl_order.totalQuantity}, auxPrice={sl_order.auxPrice}")
+                    
+                    # Place stop loss order
+                    sl_trade = ib.placeOrder(contract, sl_order)
+                    ib.sleep(1)
+                    bracket_messages.append(f"Stop Loss at ${stop_price:.2f}")
+                    log(f"Stop loss order placed successfully: {sl_trade}")
+                except ValueError as ve:
+                    log(f"ValueError with stop loss percentage: {stop_loss_pct} - {ve}")
+                except Exception as e:
+                    log(f"Error placing stop loss order: {str(e)}")
+            
+            # Calculate take profit price (percentage above fill price)
+            if has_take_profit:
+                try:
+                    tp_pct = float(take_profit_pct)
+                    limit_price_raw = fill_price * (1 + tp_pct / 100)
+                    limit_price = round_to_tick(limit_price_raw)
+                    log(f"Take Profit calculation: {tp_pct}% of ${fill_price:.2f} = ${limit_price_raw:.3f} -> rounded to ${limit_price:.2f}")
+                    
+                    # Create take profit order
+                    tp_order = Order()
+                    tp_order.action = 'SELL' if action == 'BUY' else 'BUY'  # Opposite of parent
+                    tp_order.orderType = 'LMT'
+                    tp_order.totalQuantity = quantity
+                    tp_order.lmtPrice = limit_price
+                    tp_order.transmit = True  # Important: transmit the order
+                    tp_order.outsideRth = True  # Allow outside regular hours
+                    
+                    log(f"Submitting take profit order: action={tp_order.action}, type={tp_order.orderType}, qty={tp_order.totalQuantity}, lmtPrice={tp_order.lmtPrice}")
+                    
+                    # Place take profit order
+                    tp_trade = ib.placeOrder(contract, tp_order)
+                    ib.sleep(1)
+                    bracket_messages.append(f"Take Profit at ${limit_price:.2f}")
+                    log(f"Take profit order placed successfully: {tp_trade}")
+                except ValueError as ve:
+                    log(f"ValueError with take profit percentage: {take_profit_pct} - {ve}")
+                except Exception as e:
+                    log(f"Error placing take profit order: {str(e)}")
+        else:
+            log("No bracket orders to place (both SL/TP are '--')")
+        
+        # Build success message
+        base_message = f"{action} order filled: {quantity} {ticker} {expiry} {strike}{option_type} @ ${fill_price:.2f}"
+        if bracket_messages:
+            base_message += " with " + ", ".join(bracket_messages)
+        
+        log(f"=== Order placement complete: {base_message} ===")
         
         return {
             "success": True,
-            "message": f"{action} order placed for {quantity} {ticker} {expiry} {strike}{option_type} contracts"
+            "message": base_message
         }
         
     except Exception as e:
-        log(f"Error placing order: {str(e)}\n{traceback.format_exc()}")
+        log(f"Error placing order: {str(e)}\\n{traceback.format_exc()}")
         return {"success": False, "message": f"Failed to place order: {str(e)}"}
 
-def place_order_ibapi(action, ticker, quantity, expiry, strike, option_type):
-    """Place order using ibapi"""
+def place_order_ibapi(action, ticker, quantity, expiry, strike, option_type, stop_loss_pct='--', take_profit_pct='--'):
+    """Place order using ibapi with optional bracket orders for SL/TP"""
     try:
         from ibapi.contract import Contract
         from ibapi.order import Order
@@ -223,18 +370,30 @@ def place_order_ibapi(action, ticker, quantity, expiry, strike, option_type):
         if ib.next_order_id is None:
             return {"success": False, "message": "Not ready to place orders"}
         
-        ib.placeOrder(ib.next_order_id, contract, order)
+        parent_order_id = ib.next_order_id
+        ib.placeOrder(parent_order_id, contract, order)
         ib.next_order_id += 1
         
-        time.sleep(1)
+        time.sleep(2)  # Wait for order execution
+        
+        # Note: ibapi implementation is simplified and doesn't wait for fill
+        # In production, you'd need to implement fill detection callbacks
+        base_message = f"{action} order placed for {quantity} {ticker} {expiry} {strike}{option_type} contracts"
+        
+        # Check if we need to place bracket orders
+        has_stop_loss = stop_loss_pct != '--' and stop_loss_pct != '' and stop_loss_pct is not None
+        has_take_profit = take_profit_pct != '--' and take_profit_pct != '' and take_profit_pct is not None
+        
+        if has_stop_loss or has_take_profit:
+            base_message += " (Note: Bracket orders with ibapi require manual fill price monitoring)"
         
         return {
             "success": True,
-            "message": f"{action} order placed for {quantity} {ticker} {expiry} {strike}{option_type} contracts"
+            "message": base_message
         }
         
     except Exception as e:
-        log(f"Error placing order: {str(e)}\n{traceback.format_exc()}")
+        log(f"Error placing order: {str(e)}\\n{traceback.format_exc()}")
         return {"success": False, "message": f"Failed to place order: {str(e)}"}
 
 def get_positions_ib_insync():
@@ -371,7 +530,7 @@ def get_balance_ib_insync():
         net_liquidation = 0
         
         for item in account_values:
-            log(f"Account value: tag={item.tag}, value={item.value}, currency={item.currency}")
+            #log(f"Account value: tag={item.tag}, value={item.value}, currency={item.currency}")
             if item.tag == 'LookAheadAvailableFunds' and item.currency == 'USD':
                 net_liquidation = float(item.value)
                 log(f"Found NetLiquidation: {net_liquidation}")
@@ -405,7 +564,7 @@ def get_balance_ibapi():
 
         ib.cancelAccountSummary(1)
 
-        log(f"Account value: {ib.account_value}")
+        #log(f"Account value: {ib.account_value}")
         if ib.account_value == 0:
             log("Warning: Account value is 0")
 
@@ -497,7 +656,7 @@ def get_daily_pnl_ib_insync():
         unrealized_pnl = 0
         
         for item in account_values:
-            log(f"Account value: tag={item.tag}, value={item.value}, currency={item.currency}")
+            #log(f"Account value: tag={item.tag}, value={item.value}, currency={item.currency}")
             if item.currency == 'USD' or item.currency == 'BASE':
                 if item.tag == 'DailyPnL':
                     daily_pnl = float(item.value)
@@ -692,15 +851,22 @@ def handle_command(command):
         if cmd_type == 'place_order':
             data = command.get('data', {})
             log(f"Placing order: {data}")
+            
+            # Extract SL/TP parameters
+            stop_loss = data.get('stopLoss', '--')
+            take_profit = data.get('takeProfit', '--')
+            
             if using_ib_insync:
                 result = place_order_ib_insync(
                     data['action'], data['ticker'], data['quantity'],
-                    data['expiry'], data['strike'], data['optionType']
+                    data['expiry'], data['strike'], data['optionType'],
+                    stop_loss, take_profit
                 )
             else:
                 result = place_order_ibapi(
                     data['action'], data['ticker'], data['quantity'],
-                    data['expiry'], data['strike'], data['optionType']
+                    data['expiry'], data['strike'], data['optionType'],
+                    stop_loss, take_profit
                 )
             send_response(result, request_id)
             
