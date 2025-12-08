@@ -6,6 +6,8 @@ A lightning-fast, cross-platform Electron-based application for connecting to In
 
 ![Turbo Trader Settings](screenshot2.png)
 
+![Turbo Trader Settings](screenshot3.png)
+
 ## Features
 
 - 🖥️ Native macOS look and feel
