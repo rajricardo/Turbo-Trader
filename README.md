@@ -68,6 +68,8 @@ pip3 install ib_insync
 ## Running the Application
 
 ```bash
+cd turbo-trader
+source bin/activate
 npm start
 ```
 
