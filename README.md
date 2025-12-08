@@ -21,6 +21,7 @@ A lightning-fast, cross-platform Electron-based application for connecting to In
 - 🔄 **Refresh button** - Manually update strike price with latest market data
 - 📊 Real-time portfolio balance and daily P&L tracking
 - 📈 Options trading interface with Buy and Close All functionality
+- 🛡️ **Stop Loss & Take Profit** - Automatic bracket orders based on fill price percentages
 
 ## Prerequisites
 
@@ -115,6 +116,33 @@ In the Settings panel, you can:
 **Monitor Portfolio:**
 - View real-time balance and daily P&L in the header
 - Track your positions and performance
+
+### 5. Risk Management (Stop Loss & Take Profit)
+
+**Configure Protection:**
+1. Open Settings (⚙️ gear icon)
+2. Scroll to the **Risk Management** section
+3. Set **Stop Loss %** (e.g., `10` for 10% below fill price)
+4. Set **Take Profit %** (e.g., `20` for 20% above fill price)
+5. Use `--` to disable either or both
+
+**How It Works:**
+- When you place a market order with SL/TP configured:
+  - Parent order fills at market price
+  - Stop Loss order automatically placed at `fillPrice × (1 - stopLoss%/100)`
+  - Take Profit order automatically placed at `fillPrice × (1 + takeProfit%/100)`
+  - Prices rounded to valid tick increments ($0.05 or $0.10)
+
+**Example:**
+- Order fills at **$3.00**
+- Stop Loss 20% → Stop order placed at **$2.40**
+- Take Profit 30% → Limit order placed at **$3.90**
+
+**Notes:**
+- Both settings are optional - you can use just Stop Loss, just Take Profit, or both
+- Settings persist across sessions
+- Bracket orders appear in TWS immediately after parent order fills
+- When both are `--`, regular market orders are placed (no bracket)
 
 ## Troubleshooting
 
