@@ -186,7 +186,7 @@ def place_order_ib_insync(action, ticker, quantity, expiry, strike, option_type,
         order.action = action
         order.orderType = 'MKT'
         order.totalQuantity = quantity
-        order.tif = 'DAY'  # Explicitly set Time in Force to prevent preset conflicts
+        order.tif = 'GTC'  # Explicitly set Time in Force to prevent preset conflicts
         
         # Place the parent order
         trade = ib.placeOrder(contract, order)
@@ -290,8 +290,10 @@ def place_order_ib_insync(action, ticker, quantity, expiry, strike, option_type,
                     sl_order.orderType = 'STP'
                     sl_order.totalQuantity = quantity
                     sl_order.auxPrice = stop_price
-                    sl_order.transmit = not has_take_profit  # Only transmit if there's no TP order
+                    sl_order.transmit = True #not has_take_profit  # Only transmit if there's no TP order
                     sl_order.outsideRth = True
+                    sl_order.eTradeOnly = False  # Allow order to be transmitted
+                    sl_order.firmQuoteOnly = False  # Don't wait for firm quote
                     
                     # OCA settings for bracket (link with TP if both exist)
                     if has_take_profit:
@@ -320,6 +322,8 @@ def place_order_ib_insync(action, ticker, quantity, expiry, strike, option_type,
                     tp_order.lmtPrice = limit_price
                     tp_order.transmit = True  # Always transmit the last order
                     tp_order.outsideRth = True
+                    tp_order.eTradeOnly = False  # Allow order to be transmitted
+                    tp_order.firmQuoteOnly = False  # Don't wait for firm quote
                     
                     # OCA settings for bracket (link with SL if both exist)
                     if has_stop_loss:
