@@ -12,6 +12,7 @@ node_modules/
 
 # OS files
 .DS_Store
+.abacus.donotdelete
 
 # IDE
 .vscode/
