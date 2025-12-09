@@ -1,15 +1,25 @@
-node_modules/
+# Python virtual environment
 bin/
+include/
 lib/
-venv/
-*.log
-*.pyc
-__pycache__/
-.DS_Store
+pyvenv.cfg
+
+# Node modules
+node_modules/
+
+# Environment variables
 .env
-dist/
-build/
-*.egg-info/
+
+# OS files
+.DS_Store
+
+# IDE
 .vscode/
 .idea/
-.abacus.donotdelete
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python

@@ -60,18 +60,24 @@ pip3 install ib_insync
    ```bash
    cd turbo-trader
    ```
-3. Install dependencies:
+3. Run the installation script:
    ```bash
-   npm install
+   ./install.sh
    ```
+
+The installation script will automatically:
+- Check for Node.js and Python 3 prerequisites
+- Install npm dependencies
+- Create a Python virtual environment
+- Install Python API dependencies (ib_insync and ibapi)
 
 ## Running the Application
 
 ```bash
-cd turbo-trader
-source bin/activate
-npm start
+./run.sh
 ```
+
+The run script will automatically activate the Python virtual environment and launch the Electron app.
 
 ## Usage
 
