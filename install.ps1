@@ -111,7 +111,7 @@ Write-Host "Upgrading pip..." -ForegroundColor Yellow
 python -m pip install --upgrade pip
 
 # Install requirements
-Write-Host "Installing ib-insync and pytz..." -ForegroundColor Yellow
+Write-Host "Installing ib-insync, ibapi, and pytz..." -ForegroundColor Yellow
 python -m pip install -r requirements.txt
 
 if ($LASTEXITCODE -eq 0) {
