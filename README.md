@@ -32,7 +32,8 @@ A lightning-fast desktop application for options trading with Interactive Broker
 1. Open TWS or IB Gateway
 2. Go to **File → Global Configuration → API → Settings**
 3. ✅ Check **Enable ActiveX and Socket Clients**
-4. ✅ Add `127.0.0.1` to **Trusted IP Addresses**
+4. ✅ Take note of the **Socket Port** (e.g., 7496 or 7497)
+5. ✅ Add `127.0.0.1` to **Trusted IP Addresses**
 
 ### 3. Install & Run
 
